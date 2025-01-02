@@ -5,8 +5,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/app/_components/Header";
 import SideNav from "@/app/_components/SideNav";
 import Footer from "@/app/_components/Footer";
+import Modal from "react-modal";
+
+Modal.setAppElement("searchFilter");
 
 const SearchBookPage = () => {
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("query") || "";
+  const router = useRouter();
+
+  const [searchQuery, setSearchQuery] = useState<string>(initialQuery);
   const [books, getBooks] = useState<
     {
       id: number;
@@ -18,16 +26,58 @@ const SearchBookPage = () => {
       keywords: string;
     }[]
   >([]);
-  const searchParams = useSearchParams();
-  const initialQuery = searchParams.get("query") || "";
-  const [searchQuery, setSearchQuery] = useState<string>(initialQuery);
-
-  const router = useRouter();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
+  // ========================================================
+  // ====================| filter modal |====================
+  // const [fileterModalIsOpen, setfileterModalIsOpen] = useState<boolean>(false);
+  // const [filter, setFilter] = useState<string>("");
+
+  // const openModal = () => setfileterModalIsOpen(true);
+  // const closeModal = () => setfileterModalIsOpen(false);
+
+  // function FilterModal({ isOpen, onRequestClose, onSearch }) {
+  //   const handleInputChange = (event) => {
+  //     setSearchTerm(event.target.value);
+  //   };
+
+  //   return (
+  //     <Modal
+  //       isOpen={isOpen}
+  //       onRequestClose={onRequestClose}
+  //       contentLabel="Search Filter"
+  //       className="modal"
+  //       overlayClassName="overlay"
+  //     >
+  //       <div className="modal-header">
+  //         <h2>Search Filter</h2>
+  //         <button onClick={onRequestClose} className="close-button">
+  //           ×
+  //         </button>
+  //       </div>
+  //       <form onSubmit={handleSubmit} className="modal-body">
+  //         <input
+  //           type="text"
+  //           placeholder="Enter search term..."
+  //           value={searchTerm}
+  //           onChange={handleInputChange}
+  //           className="search-input"
+  //         />
+  //         <button type="submit" className="search-button">
+  //           Search
+  //         </button>
+  //       </form>
+  //     </Modal>
+  //   );
+  // }
+  // ====================| filter modal |====================
+  // ========================================================
+
+  // ==========================================================================
+  // ====================| fetching books from the server |====================
   const getAllBooks = () => {
     fetch("http://localhost:3001/books/")
       .then((response) => response.json())
@@ -63,6 +113,8 @@ const SearchBookPage = () => {
       getAllBooks();
     }
   }, [initialQuery]);
+  // ====================| fetching all books from the server |====================
+  // ==============================================================================
 
   return (
     <div className="flex min-h-screen w-full flex-col">
