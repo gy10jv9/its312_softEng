@@ -49,10 +49,14 @@ const AddEditBookForm = (props: any) => {
   const [yearOfSubmission, setYearOfSubmission] = useState<number | null>(
     props.Book?.yearOfSubmission || null,
   );
-  const [selectedImage, setSelectedImage] = useState<string | null>(
-    props.Book?.coverImage || null,
-  );
+  // const [selectedImage, setSelectedImage] = useState<string | null>(
+  //   props.Book?.coverImage || null,
+  // );
   const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [coverImgFile, setCoverImgFile] = useState<File | null>(null);
+  const [coverImageUrl, setCoverImageUrl] = useState(
+    props.Book?.coverImageUrl || "",
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [authors, setAuthors] = useState<Author[]>(props.Book?.authors || []);
@@ -71,16 +75,16 @@ const AddEditBookForm = (props: any) => {
 
   const router = useRouter();
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelectedImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       setSelectedImage(reader.result as string);
+  //     };
+  //     reader.readAsDataURL(file);
+  //   }
+  // };
 
   const closeModal = () => {
     setModalState({ ...modalState, isOpen: false });
@@ -112,21 +116,53 @@ const AddEditBookForm = (props: any) => {
     //   return;
     // }
 
-    const newBook = {
-      id: props.Book?.id,
-      title,
-      abstract,
-      language,
-      keywords,
-      yearOfSubmission,
-      authors,
-      advisors,
-      coverImage: selectedImage,
-      department,
-      program,
-    };
-
     try {
+      if (coverImgFile) {
+        const formData = new FormData();
+        formData.append("image", coverImgFile);
+
+        const imgUploadResponse = await fetch(
+          "http://localhost:3001/upload/img",
+          {
+            method: "POST",
+            body: formData,
+          },
+        );
+
+        const imgUploadResult = await imgUploadResponse.json();
+        console.log(imgUploadResult);
+        console.log(`image url: ${imgUploadResult.data.url}`);
+        setCoverImageUrl(imgUploadResult.data.url);
+        console.log(`setCoverImageUrl: ${coverImageUrl}`);
+      }
+
+      if (pdfFile) {
+        const formData = new FormData();
+        formData.append("pdf", pdfFile);
+
+        const res = await fetch("http://localhost:3001/upload/pdf", {
+          method: "POST",
+          body: formData,
+        });
+
+        const responseFromServer = await res.json();
+        console.log(responseFromServer);
+      }
+
+      const newBook = {
+        id: props.Book?.id,
+        title,
+        abstract,
+        language,
+        keywords,
+        yearOfSubmission,
+        authors,
+        advisors,
+        coverImageUrl,
+        department,
+        program,
+      };
+
       const response = await fetch("http://localhost:3001/books/addEdit", {
         method: "POST",
         headers: {
@@ -149,20 +185,6 @@ const AddEditBookForm = (props: any) => {
         message: "An error occurred while adding the book",
         type: "error",
       });
-    }
-
-    // upload pdf file sa backend kng may ara
-    if (pdfFile) {
-      const formData = new FormData();
-      formData.append("pdf", pdfFile);
-
-      const res = await fetch("http://localhost:3001/upload/pdf", {
-        method: "POST",
-        body: formData,
-      });
-
-      const responseFromServer = await res.json();
-      console.log(responseFromServer);
     }
   };
 
@@ -438,13 +460,13 @@ const AddEditBookForm = (props: any) => {
           <div
             className="mb-4 h-96 w-full rounded bg-cover bg-center shadow-md"
             style={{
-              backgroundImage: `url(${selectedImage || "/defaults/defaultBookCover.png"})`,
+              backgroundImage: `url(${coverImgFile ? URL.createObjectURL(coverImgFile) : "/defaults/defaultBookCover.png"})`,
             }}
           ></div>
           <input
             type="file"
             ref={fileInputRef}
-            onChange={handleFileSelect}
+            onChange={(e) => setCoverImgFile(e.target.files?.[0] || null)}
             accept="image/*"
             className="hidden"
           />
