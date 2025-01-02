@@ -48,7 +48,7 @@ model Book {
   yearOfSubmission Int?
   department       String?
   program          String?
-  coverImage       String?
+  coverImageUrl       String?
   pdfUrl           String?
   pdfDownloadLink  String?
   recommendations  Int     @default(0)
