@@ -6,5 +6,6 @@ import upload from "../middleware/multer";
 const uploadRouter = Router();
 
 uploadRouter.post("/pdf", upload.single("pdf"), uploadController.uploadPdf);
+uploadRouter.post("/img", upload.single("image"), uploadController.uploadImg);
 
 export default uploadRouter;
